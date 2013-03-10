@@ -1,7 +1,7 @@
 function Colour( format, values ){
     this.models = {
-        RGB: [ 0, 0, 0 ],
-        HSV: [ 0, 0, 0 ],
+        RGB: { r: 0, g: 0, b: 0 },
+        HSV: { h: 0, s: 0, v: 0 },
         HEX: '#000'
     };
 
@@ -9,6 +9,11 @@ function Colour( format, values ){
 }
 
 Colour.prototype = {
+
+    /*
+     * Setters
+     */
+
     setColour: function( format, values ){
         switch( format ){
             case 'RGB':
@@ -26,46 +31,89 @@ Colour.prototype = {
     },
 
     setRGB: function(values){
-        this.models.RGB = [ values[0], values[1], values[2] ];
-        this.models.HSV = this.RGBToHSV( this.models.RGB );
-        this.models.HEX = this.RGBToHEX( this.models.RGB );
+        this.models.RGB = values;
+        this.models.HSV = this.RGBToHSV();
+        this.models.HEX = this.RGBToHEX();
     },
 
     setHSV: function(values){
-
+        this.models.HSV = values;
+        this.models.RGB = this.HSVToRGB();
+        this.models.HEX = this.HSVToHEX();
     },
 
-    setHEX: function(values){
-
+    setHEX: function(value){
+        this.models.HEV = value;
+        this.models.RGB = this.HEXToRGB();
+        this.models.HSV = this.HEXToHSV();
     },
 
-    RGBToHSV: function(values){
-        var r = values[0]/255, g = values[1]/255, b = values[2]/255;
-        var max = Math.max(r, g, b), min = Math.min(r, g, b);
-        var h, s, v = max;
-    
-        var d = max - min;
-        s = max == 0 ? 0 : d / max;
-    
-        if(max == min){
+    /*
+     * Getters
+     */
+
+    HEX: function(){
+        return this.models.HEX;
+    },
+
+    RGB: function(){
+        return this.models.RGB;
+    },
+
+    HSV: function(){
+        return this.models.HSV;
+    },
+
+    /*
+     * Conversion
+     */
+
+    RGBToHSV: function(){
+        var r = this.models.RGB.r / 255,
+            g = this.models.RGB.g / 255,
+            b = this.models.RGB.b / 255;
+            minVal = Math.min(r, g, b),
+            maxVal = Math.max(r, g, b),
+            delta = maxVal - minVal,
+            h = s = v = maxVal;
+
+        if (delta == 0) {
             h = 0;
-        }else{
-            switch(max){
-                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-                case g: h = (b - r) / d + 2; break;
-                case b: h = (r - g) / d + 4; break;
-            }
-            h /= 6;
+            s = 0;
+        } 
+        else {
+            s = delta / maxVal;
+            var del_R = (((maxVal - r) / 6) + (delta / 2)) / delta;
+            var del_G = (((maxVal - g) / 6) + (delta / 2)) / delta;
+            var del_B = (((maxVal - b) / 6) + (delta / 2)) / delta;
+
+            if (r == maxVal)
+                h = del_B - del_G;
+            else if (g == maxVal)
+                h = (1 / 3) + del_R - del_B;
+            else if (b == maxVal)
+                h = (2 / 3) + del_G - del_R;
+            
+            if (h < 0) h += 1;
+            if (h > 1) h -= 1;
         }
-        
-        return [ h, s, v ];
+
+        h *= 360;
+        s *= 100;
+        v *= 100;
+
+        return { 
+            h: Math.round(h), 
+            s: Math.round(s), 
+            v: Math.round(v)
+        };
     },
 
-    RGBToHEX: function(values){
+    RGBToHEX: function(){
         var colour = '#',
-            hr     = ( 0 + values[0].toString(16) ).substr(-2),
-            hg     = ( 0 + values[1].toString(16) ).substr(-2),
-            hb     = ( 0 + values[2].toString(16) ).substr(-2);
+            hr     = ( 0 + this.models.RGB.r.toString(16) ).substr(-2),
+            hg     = ( 0 + this.models.RGB.g.toString(16) ).substr(-2),
+            hb     = ( 0 + this.models.RGB.b.toString(16) ).substr(-2);
 
         if ( hr.charAt(0) === hr.charAt(1) &&
              hg.charAt(0) === hg.charAt(1) &&
@@ -79,7 +127,19 @@ Colour.prototype = {
         return colour.toUpperCase();        
     },
 
-    HEX: function(){
-        return this.models.HEX;
-    }
+    HSVToRGB: function(){
+
+    },
+
+    HSVToHEX: function(){
+
+    },
+
+    HEXToRGB: function(){
+
+    },
+
+    HEXToHSV: function(){
+
+    },
 }
