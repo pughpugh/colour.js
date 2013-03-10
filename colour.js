@@ -43,7 +43,7 @@ Colour.prototype = {
     },
 
     setHEX: function(value){
-        this.models.HEV = value;
+        this.models.HEX = value;
         this.models.RGB = this.HEXToRGB();
         this.models.HSV = this.HEXToHSV();
     },
@@ -136,10 +136,34 @@ Colour.prototype = {
     },
 
     HEXToRGB: function(){
+        var hex = this.models.HEX.substr(1);
+        var rgb = { r:0, g:0, b:0 };
 
+        tripLength = hex.length / 3;
+
+        if( tripLength === 2 ) {
+            rgb.r = parseInt( hex.substr( 0, 2 ), 16 );
+            rgb.g = parseInt( hex.substr( 2, 2 ), 16 );
+            rgb.b = parseInt( hex.substr( 4, 2 ), 16 );
+        }
+        else {
+            rgb.r = parseInt( hex.substr( 0, 1 ) + hex.substr( 0, 1 ), 16 );
+            rgb.g = parseInt( hex.substr( 1, 1 ) + hex.substr( 1, 1 ), 16 );
+            rgb.b = parseInt( hex.substr( 2, 1 ) + hex.substr( 2, 1 ), 16 );
+        }
+
+        return rgb;
     },
 
     HEXToHSV: function(){
 
     },
+
+    lightOrDark: function () {
+        var brightness = (this.RGB().r * 299) 
+                       + (this.RGB().g * 587) 
+                       + (this.RGB().b * 114);
+        brightness = brightness / 255000;
+        return ( brightness >= 0.5 ) ? 'light' : 'dark';
+    }
 }
