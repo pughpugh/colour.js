@@ -30,22 +30,22 @@ Colour.prototype = {
         }
     },
 
-    setRGB: function(values){
-        this.models.RGB = values;
-        this.models.HSV = this.RGBToHSV();
-        this.models.HEX = this.RGBToHEX();
+    setRGB: function(rgb){
+        this.models.RGB = rgb;
+        this.models.HSV = this.RGBToHSV(rgb);
+        this.models.HEX = this.RGBToHEX(rgb);
     },
 
-    setHSV: function(values){
-        this.models.HSV = values;
-        this.models.RGB = this.HSVToRGB();
-        this.models.HEX = this.HSVToHEX();
+    setHSV: function(hsv){
+        this.models.HSV = hsv;
+        this.models.RGB = this.HSVToRGB(hsv);
+        this.models.HEX = this.HSVToHEX(hsv);
     },
 
-    setHEX: function(value){
-        this.models.HEX = value;
-        this.models.RGB = this.HEXToRGB();
-        this.models.HSV = this.HEXToHSV();
+    setHEX: function(hex){
+        this.models.HEX = hex;
+        this.models.RGB = this.HEXToRGB(hex);
+        this.models.HSV = this.HEXToHSV(hex);
     },
 
     /*
@@ -68,10 +68,10 @@ Colour.prototype = {
      * Conversion
      */
 
-    RGBToHSV: function(){
-        var r = this.models.RGB.r / 255,
-            g = this.models.RGB.g / 255,
-            b = this.models.RGB.b / 255;
+    RGBToHSV: function(rgb){
+        var r = rgb.r / 255,
+            g = rgb.g / 255,
+            b = rgb.b / 255;
             minVal = Math.min(r, g, b),
             maxVal = Math.max(r, g, b),
             delta = maxVal - minVal,
@@ -109,11 +109,11 @@ Colour.prototype = {
         };
     },
 
-    RGBToHEX: function(){
+    RGBToHEX: function(rgb){
         var colour = '#',
-            hr     = ( 0 + this.models.RGB.r.toString(16) ).substr(-2),
-            hg     = ( 0 + this.models.RGB.g.toString(16) ).substr(-2),
-            hb     = ( 0 + this.models.RGB.b.toString(16) ).substr(-2);
+            hr     = ( 0 + rgb.r.toString(16) ).substr(-2),
+            hg     = ( 0 + rgb.g.toString(16) ).substr(-2),
+            hb     = ( 0 + rgb.b.toString(16) ).substr(-2);
 
         if ( hr.charAt(0) === hr.charAt(1) &&
              hg.charAt(0) === hg.charAt(1) &&
@@ -127,16 +127,44 @@ Colour.prototype = {
         return colour.toUpperCase();        
     },
 
-    HSVToRGB: function(){
+    HSVToRGB: function(hsv){
+        var r, g, b,
+            h = hsv.h / 60, s = hsv.s / 100, v = hsv.v / 100,
+            i = Math.floor(h),
+            f = h - i,
+            p = v * (1 - s),
+            q = v * (1 - f * s),
+            t = v * (1 - s * (1 - f));
 
+        if(s === 0) {
+            r = g = b = v;
+        }
+        else { 
+            switch(i){
+                case 0: r = v, g = t, b = p; break;
+                case 1: r = q, g = v, b = p; break;
+                case 2: r = p, g = v, b = t; break;
+                case 3: r = p, g = q, b = v; break;
+                case 4: r = t, g = p, b = v; break;
+                default: r = v, g = p, b = q; break;
+            }
+        }
+    
+        return { 
+            r: Math.round( r * 255 ), 
+            g: Math.round( g * 255 ), 
+            b: Math.round( b * 255 )
+        };
     },
 
-    HSVToHEX: function(){
-
+    HSVToHEX: function(hsv){
+        var rgb = this.HSVToRGB( hsv );
+        var hex = this.RGBToHEX( rgb );
+        return hex;
     },
 
-    HEXToRGB: function(){
-        var hex = this.models.HEX.substr(1);
+    HEXToRGB: function(hex){
+        var hex = hex.substr(1);
         var rgb = { r:0, g:0, b:0 };
 
         tripLength = hex.length / 3;
@@ -155,9 +183,15 @@ Colour.prototype = {
         return rgb;
     },
 
-    HEXToHSV: function(){
-
+    HEXToHSV: function(hex){
+        var rgb = this.HEXToRGB( hex );
+        var hsv = this.RGBToHSV( rgb );
+        return hsv;
     },
+
+    /*
+     * Tools
+     */
 
     lightOrDark: function () {
         var brightness = (this.RGB().r * 299) 
